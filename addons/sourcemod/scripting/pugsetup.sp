@@ -30,7 +30,6 @@
 
 /** ConVar handles **/
 ConVar g_AdminFlagCvar;
-ConVar g_AimMapListCvar;
 ConVar g_AllowCustomReadyMessageCvar;
 ConVar g_AnnounceCountdownCvar;
 ConVar g_AutoRandomizeCaptainsCvar;
@@ -74,14 +73,12 @@ bool g_DisplayKnifeRound = true;
 bool g_DisplayTeamSize = true;
 bool g_DisplayRecordDemo = true;
 bool g_DisplayMapChange = false;
-bool g_DisplayAimWarmup = true;
 bool g_DisplayPlayout = false;
 
 /** Setup info **/
 int g_Leader = -1;
 ArrayList g_MapList;
 ArrayList g_PastMaps;
-ArrayList g_AimMapList;
 bool g_ForceEnded = false;
 
 /** Specific choices made when setting up **/
@@ -91,12 +88,7 @@ MapType g_MapType = MapType_Vote;
 bool g_RecordGameOption = false;
 bool g_DoKnifeRound = false;
 bool g_AutoLive = true;
-bool g_DoAimWarmup = false;
 bool g_DoPlayout = false;
-
-/** Other important variables about the state of the game **/
-TeamBalancerFunction g_BalancerFunction = INVALID_FUNCTION;
-Handle g_BalancerFunctionPlugin = INVALID_HANDLE;
 
 GameState g_GameState = GameState_None;
 bool g_SwitchingMaps = false;  // if we're in the middle of a map change
@@ -206,9 +198,9 @@ Handle g_hOnWarmupCfg = INVALID_HANDLE;
 
 // clang-format off
 public Plugin myinfo = {
-    name = "CS:GO PugSetup",
-    author = "splewis",
-    description = "Tools for setting up pugs/10mans",
+    name = "Pug Plugin",
+    author = "splewis, heapy",
+    description = "Tools for setting up pugs",
     version = PLUGIN_VERSION,
     url = "https://github.com/splewis/csgo-pug-setup"
 };
@@ -224,9 +216,6 @@ public void OnPluginStart() {
   g_AdminFlagCvar = CreateConVar(
       "sm_pugsetup_admin_flag", "b",
       "Admin flag to mark players as having elevated permissions - e.g. can always pause,setup,end the game, etc.");
-  g_AimMapListCvar = CreateConVar(
-      "sm_pugsetup_maplist_aim_maps", "aim_maps.txt",
-      "If using aim map warmup, the maplist file in addons/sourcemod/configs/pugsetup to use. You may also use a workshop collection ID instead of a maplist if you have the SteamWorks extension installed.");
   g_AllowCustomReadyMessageCvar =
       CreateConVar("sm_pugsetup_allow_custom_ready_messages", "1",
                    "Whether users can set custom ready messages saved via a clientprefs cookie");
@@ -306,7 +295,7 @@ public void OnPluginStart() {
       CreateConVar("sm_pugsetup_random_map_vote_option", "1",
                    "Whether option 1 in a mapvote is the random map choice.");
   g_SetupEnabledCvar = CreateConVar("sm_pugsetup_setup_enabled", "1",
-                                    "Whether the sm_setup and sm_10man commands are enabled");
+                                    "Whether the sm_setup commands are enabled");
   g_SnakeCaptainsCvar = CreateConVar(
       "sm_pugsetup_snake_captain_picks", "0",
       "If set to 0: captains pick players in a ABABABAB order. If set to 1, in a ABBAABBA order. If set to 2, in a ABBABABA order. If set to 3, in a ABBABAAB order.");
@@ -333,7 +322,6 @@ public void OnPluginStart() {
   g_CvarVersionCvar.SetString(PLUGIN_VERSION);
 
   HookConVarChange(g_MapListCvar, OnMapListChanged);
-  HookConVarChange(g_AimMapListCvar, OnAimMapListChanged);
 
   /** Commands **/
   g_Commands = new ArrayList(COMMAND_LENGTH);
@@ -344,9 +332,6 @@ public void OnPluginStart() {
                      ChatAlias_WhenSetup);
   AddPugSetupCommand("setup", Command_Setup,
                      "Starts pug setup (.ready, .capt commands become avaliable)", Permission_All);
-  AddPugSetupCommand("10man", Command_10man,
-                     "Starts 10man setup (alias for .setup with 10 man/gather settings)",
-                     Permission_All);
   AddPugSetupCommand("rand", Command_Rand, "Sets random captains", Permission_Captains,
                      ChatAlias_WhenSetup);
   AddPugSetupCommand("pause", Command_Pause, "Pauses the game", Permission_All,
@@ -379,8 +364,6 @@ public void OnPluginStart() {
   AddPugSetupCommand("removemap", Command_RemoveMap, "Removes a map to the current maplist",
                      Permission_Admin);
   AddPugSetupCommand("listpugmaps", Command_ListPugMaps, "Lists the current maplist",
-                     Permission_All);
-  AddPugSetupCommand("listaimmaps", Command_ListAimMaps, "Lists the current aim maplist",
                      Permission_All);
   AddPugSetupCommand("start", Command_Start, "Starts the game if autolive is disabled",
                      Permission_Leader, ChatAlias_WhenSetup);
@@ -489,18 +472,6 @@ public void OnMapListChanged(ConVar convar, const char[] oldValue, const char[] 
   }
 }
 
-public void OnAimMapListChanged(ConVar convar, const char[] oldValue, const char[] newValue) {
-  if (!StrEqual(oldValue, newValue)) {
-    FillMapList(g_AimMapListCvar, g_AimMapList);
-  }
-}
-
-public void OnConfigsExecuted() {
-  FillMapList(g_MapListCvar, g_MapList);
-  FillMapList(g_AimMapListCvar, g_AimMapList);
-  ReadPermissions();
-}
-
 public void OnLibraryAdded(const char[] name) {
   if (GetConVarInt(g_AutoUpdateCvar) != 0) {
     if (LibraryExists("updater")) {
@@ -574,10 +545,6 @@ public Action Timer_CheckReady(Handle timer) {
   if (g_GameState != GameState_Warmup || !g_LiveTimerRunning) {
     g_LiveTimerRunning = false;
     return Plugin_Stop;
-  }
-
-  if (g_DoAimWarmup) {
-    EnsurePausedWarmup();
   }
 
   int readyPlayers = 0;
@@ -812,37 +779,6 @@ public Action Command_Setup(int client, int args) {
   return Plugin_Handled;
 }
 
-public Action Command_10man(int client, int args) {
-  if (g_SetupEnabledCvar.IntValue == 0) {
-    return Plugin_Handled;
-  }
-
-  if (g_GameState > GameState_Warmup) {
-    PugSetup_Message(client, "%t", "AlreadyLive");
-    return Plugin_Handled;
-  }
-
-  bool allowedToSetup = DoPermissionCheck(client, "sm_10man");
-  if (g_GameState == GameState_None && !allowedToSetup) {
-    PugSetup_Message(client, "%t", "NoPermission");
-    return Plugin_Handled;
-  }
-
-  bool allowedToChangeSetup = PugSetup_HasPermissions(client, Permission_Leader);
-  if (g_GameState == GameState_Warmup && !allowedToChangeSetup) {
-    PugSetup_GiveSetupMenu(client, true);
-    return Plugin_Handled;
-  }
-
-  if (IsPlayer(client)) {
-    g_Leader = client;
-  }
-
-  PugSetup_SetupGame(TeamType_Captains, MapType_Vote, 5, g_RecordGameOption, g_DoKnifeRound,
-                     g_AutoLive);
-  return Plugin_Handled;
-}
-
 public Action Command_Rand(int client, int args) {
   if (g_GameState != GameState_Warmup)
     return Plugin_Handled;
@@ -941,17 +877,6 @@ public Action Command_ListPugMaps(int client, int args) {
   }
 
   ListMapList(client, g_MapList);
-  return Plugin_Handled;
-}
-
-public Action Command_ListAimMaps(int client, int args) {
-  if (!DoPermissionCheck(client, "sm_listaimmaps")) {
-    if (IsValidClient(client))
-      PugSetup_Message(client, "%t", "NoPermission");
-    return Plugin_Handled;
-  }
-
-  ListMapList(client, g_AimMapList);
   return Plugin_Handled;
 }
 
@@ -1196,6 +1121,8 @@ public int MatchEndHandler(Menu menu, MenuAction action, int param1, int param2)
   } else if (action == MenuAction_End) {
     CloseHandle(menu);
   }
+
+  return 0;
 }
 
 public Action Command_ForceEnd(int client, int args) {
@@ -1603,10 +1530,12 @@ public Action Event_MatchOver(Event event, const char[] name, bool dontBroadcast
 /** Helper timer to delay starting warmup period after match is over by a little bit **/
 public Action Timer_EndMatch(Handle timer) {
   EndMatch(false, false);
+  return Plugin_Continue;
 }
 
 public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
   CheckAutoSetup();
+  return Plugin_Continue;
 }
 
 public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
@@ -1633,16 +1562,20 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
       PugSetup_MessageToAll("%t", "KnifeRoundWinner", teamString, stayCmd, swapCmd);
     }
   }
+
+  return Plugin_Continue;
 }
 
 public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast) {
   if (g_GameState != GameState_Warmup)
-    return;
+    return Plugin_Continue;
 
   int client = GetClientOfUserId(event.GetInt("userid"));
   if (IsPlayer(client) && OnActiveTeam(client) && g_WarmupMoneyOnSpawnCvar.IntValue != 0) {
     SetEntProp(client, Prop_Send, "m_iAccount", GetCvarIntSafe("mp_maxmoney"));
   }
+
+  return Plugin_Continue;
 }
 
 public Action Event_PlayerConnect(Event event, const char[] name, bool dontBroadcast) {
@@ -1650,6 +1583,8 @@ public Action Event_PlayerConnect(Event event, const char[] name, bool dontBroad
   int client = GetClientOfUserId(userid);
   g_Teams[client] = CS_TEAM_NONE;
   g_PlayerAtStart[client] = false;
+
+  return Plugin_Continue;
 }
 
 public Action Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) {
@@ -1661,6 +1596,8 @@ public Action Event_PlayerDisconnect(Event event, const char[] name, bool dontBr
     g_capt1 = -1;
   if (g_capt2 == client)
     g_capt2 = -1;
+
+  return Plugin_Continue;
 }
 
 /**
@@ -1827,33 +1764,6 @@ public void StartGame() {
     g_PlayerAtStart[i] = IsPlayer(i);
   }
 
-  if (g_TeamType == TeamType_Autobalanced) {
-    if (!PugSetup_IsTeamBalancerAvaliable()) {
-      LogError(
-          "Match setup with autobalanced teams without a balancer avaliable - falling back to random teams");
-      g_TeamType = TeamType_Random;
-    } else {
-      ArrayList players = new ArrayList();
-      for (int i = 1; i <= MaxClients; i++) {
-        if (IsPlayer(i)) {
-          if (PugSetup_IsReady(i))
-            players.Push(i);
-          else
-            ChangeClientTeam(i, CS_TEAM_SPECTATOR);
-        }
-      }
-
-      char buffer[128];
-      GetPluginFilename(g_BalancerFunctionPlugin, buffer, sizeof(buffer));
-      LogDebug("Running autobalancer function from plugin %s", buffer);
-
-      Call_StartFunction(g_BalancerFunctionPlugin, g_BalancerFunction);
-      Call_PushCell(players);
-      Call_Finish();
-      delete players;
-    }
-  }
-
   if (g_TeamType == TeamType_Random) {
     PugSetup_MessageToAll("%t", "Scrambling");
     ScrambleTeams();
@@ -1874,6 +1784,8 @@ public Action Timer_BeginMatch(Handle timer) {
     ChangeState(GameState_GoingLive);
     CreateTimer(3.0, BeginLO3, _, TIMER_FLAG_NO_MAPCHANGE);
   }
+  
+  return Plugin_Continue;
 }
 
 public void ScrambleTeams() {
@@ -1916,9 +1828,6 @@ public void ScrambleTeams() {
 
 public void ExecWarmupConfigs() {
   ExecCfg(g_WarmupCfgCvar);
-  if (OnAimMap() && g_DoAimWarmup && !g_OnDecidedMap) {
-    ServerCommand("exec sourcemod/pugsetup/aim_warmup.cfg");
-  }
 }
 
 public void ExecGameConfigs() {
@@ -2183,13 +2092,10 @@ stock bool TeamTypeFromString(const char[] teamTypeString, TeamType& teamType,
     teamType = TeamType_Manual;
   } else if (StrEqual(teamTypeString, "random", false)) {
     teamType = TeamType_Random;
-  } else if (StrEqual(teamTypeString, "autobalanced", false) ||
-             StrEqual(teamTypeString, "balanced", false)) {
-    teamType = TeamType_Autobalanced;
   } else {
     if (logError)
       LogError(
-          "Invalid team type: \"%s\", allowed values: \"captains\", \"manual\", \"random\", \"autobalanced\"",
+          "Invalid team type: \"%s\", allowed values: \"captains\", \"manual\", \"random\"",
           teamTypeString);
     return false;
   }

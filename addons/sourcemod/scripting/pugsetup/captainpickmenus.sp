@@ -10,6 +10,7 @@ public Action Timer_InitialChoiceMenu(Handle timer) {
     EndMatch(false);
     return Plugin_Handled;
     
+  // compiler says its unreachable code, okay buddy
   if (!g_DoKnifeRound) {
     // if no knife rounds, they get to choose between side/1st pick
     Menu menu = new Menu(InitialChoiceHandler);
@@ -51,6 +52,8 @@ public int InitialChoiceHandler(Menu menu, MenuAction action, int param1, int pa
   } else if (action == MenuAction_End) {
     delete menu;
   }
+
+  return 0;
 }
 
 public void SideMenu(int client) {
@@ -93,6 +96,8 @@ public int SideMenuHandler(Menu menu, MenuAction action, int param1, int param2)
   } else if (action == MenuAction_End) {
     delete menu;
   }
+
+  return 0;
 }
 
 /**
@@ -128,7 +133,7 @@ public Action GivePlayerSelectionMenu(Handle timer, int serial) {
 
 public int PlayerMenuHandler(Menu menu, MenuAction action, int param1, int param2) {
   if (g_GameState != GameState_PickingPlayers)
-    return;
+    return 0;
 
   if (action == MenuAction_Select) {
     int client = param1;
@@ -160,6 +165,8 @@ public int PlayerMenuHandler(Menu menu, MenuAction action, int param1, int param
   } else if (action == MenuAction_End) {
     delete menu;
   }
+
+  return 0;
 }
 
 static void MoreMenuPicks(int client) {

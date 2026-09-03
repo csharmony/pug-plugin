@@ -8,7 +8,6 @@ enum TeamType {
   TeamType_Manual,
   TeamType_Random,
   TeamType_Captains,
-  TeamType_Autobalanced,  // only allowed if PugSetup_IsTeamBalancerAvaliable() is true
 };
 
 // Different ways the map can be selected.
@@ -190,24 +189,6 @@ forward void PugSetup_OnHelpCommand(int client, ArrayList replyMessages, int max
  */
 forward void PugSetup_OnGameStateChanged(GameState before, GameState after);
 
-typedef TeamBalancerFunction = function void(ArrayList players);
-
-/**
- * Returns if a team balancer function has been set for pugsetup to use, if selected in the setup
- * menu.
- */
-native bool PugSetup_IsTeamBalancerAvaliable();
-
-/**
- * Sets a team balancer function, returning if the balancer function was set.
- */
-native bool PugSetup_SetTeamBalancer(TeamBalancerFunction balancerFunction, bool override = false);
-
-/**
- * Clears any team balancer function set, returning if there was one before clearing.
- */
-native bool PugSetup_ClearTeamBalancer();
-
 // Sets a game up with the given settings.
 native void PugSetup_SetupGame(TeamType teamType, MapType mapType = MapType_Vote,
                                int playersPerTeam = 5, bool recordDemo = false,
@@ -357,8 +338,5 @@ public __pl_pugsetup_SetNTVOptional() {
   MarkNativeAsOptional("PugSetup_IsValidCommand");
   MarkNativeAsOptional("PugSetup_GetPermissions");
   MarkNativeAsOptional("PugSetup_SetPermissions");
-  MarkNativeAsOptional("PugSetup_SetTeamBalancer");
-  MarkNativeAsOptional("PugSetup_IsTeamBalancerAvaliable");
-  MarkNativeAsOptional("PugSetup_ClearTeamBalancer");
 }
 #endif

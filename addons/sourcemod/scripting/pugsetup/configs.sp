@@ -83,7 +83,7 @@ static char g_SetupKeys[][] = {"maptype",  "teamtype", "autolive",  "kniferound"
 static char g_SetupCoercions[][][] = {
     {"map", "maptype"},         {"teams", "teamtype"},   {"team", "teamtype"},
     {"knife", "kniferound"},    {"autolo3", "autolive"}, {"demo", "record"},
-    {"changemap", "mapchange"}, {"aim", "aimwarmup"},    {"aimmap", "aimwarmup"},
+    {"changemap", "mapchange"},
 };
 
 stock bool CheckEnabledFromString(const char[] value) {
@@ -179,12 +179,6 @@ stock bool CheckSetupOptionValidity(int client, char[] setting, const char[] val
       g_DisplayMapChange = CheckEnabledFromString(value);
     return true;
 
-  } else if (StrEqual(setting, "aimwarmup", false)) {
-    if (setDisplay) {
-      g_DisplayAimWarmup = CheckEnabledFromString(value);
-    }
-    return true;
-
   } else if (StrEqual(setting, "playout", false)) {
     if (setDisplay) {
       g_DoPlayout = CheckEnabledFromString(value);
@@ -244,11 +238,6 @@ stock void ReadSetupOptions() {
         kv.GetString("default", buffer, sizeof(buffer), "0");
         g_RecordGameOption = CheckEnabledFromString(buffer);
         g_DisplayRecordDemo = display;
-
-      } else if (StrEqual(setting, "aimwarmup", false)) {
-        kv.GetString("default", buffer, sizeof(buffer), "0");
-        g_DoAimWarmup = CheckEnabledFromString(buffer);
-        g_DisplayAimWarmup = display;
 
       } else if (StrEqual(setting, "mapchange", false)) {
         g_DisplayMapChange = display;

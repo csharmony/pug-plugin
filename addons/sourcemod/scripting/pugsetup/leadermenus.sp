@@ -32,6 +32,8 @@ public int Captain1MenuHandler(Menu menu, MenuAction action, int param1, int par
   } else if (action == MenuAction_End) {
     CloseHandle(menu);
   }
+
+  return 0;
 }
 
 public void Captain2Menu(int client) {
@@ -62,6 +64,8 @@ public int Captain2MenuHandler(Menu menu, MenuAction action, int param1, int par
   } else if (action == MenuAction_End) {
     CloseHandle(menu);
   }
+
+  return 0;
 }
 
 static int CountPotentialCaptains(int otherCaptain) {
@@ -110,6 +114,8 @@ public int LeaderMenuHandler(Menu menu, MenuAction action, int param1, int param
   } else if (action == MenuAction_End) {
     CloseHandle(menu);
   }
+
+  return 0;
 }
 
 static int AddAllPlayers(Menu menu) {

@@ -34,7 +34,7 @@ public void UpdateWorkshopCache(const char[] collectionId, ArrayList list) {
 }
 
 // SteamWorks HTTP callback for fetching a workshop collection
-public int OnWorkshopInfoReceived(Handle request, bool failure, bool requestSuccessful,
+public void OnWorkshopInfoReceived(Handle request, bool failure, bool requestSuccessful,
                            EHTTPStatusCode statusCode, Handle data) {
   char collectionId[WORKSHOP_ID_LENGTH];
 
@@ -194,7 +194,7 @@ public void UpdateMapInfo(const char[] collectionId, ArrayList list, ArrayList m
 }
 
 // SteamWorks HTTP callback for fetching map information
-public int OnMapInfoReceived(Handle request, bool failure, bool requestSuccessful,
+public void OnMapInfoReceived(Handle request, bool failure, bool requestSuccessful,
                       EHTTPStatusCode statusCode, Handle data) {
   char collectionId[WORKSHOP_ID_LENGTH];
   ArrayList mapIds = CreateArray(WORKSHOP_ID_LENGTH);

@@ -194,21 +194,6 @@ stock void AddMapIndexToMenu(Menu menu, ArrayList mapList, int mapIndex, bool di
     AddMenuInt(menu, mapIndex, mapName);
 }
 
-public bool OnAimMap() {
-  char currentMap[PLATFORM_MAX_PATH];
-  GetCurrentMap(currentMap, sizeof(currentMap));
-
-  // if the map starts with 'aim' or exists in the aim map list
-  bool ret = StrContains(currentMap, "aim") == 0 || g_AimMapList.FindString(currentMap) >= 0;
-  return ret;
-}
-
-public void ChangeToAimMap() {
-  if (g_AimMapList.Length > 0) {
-    ChangeMap(g_AimMapList, GetArrayRandomIndex(g_AimMapList), 5.0, false);
-  }
-}
-
 public int GetMapIdFromString(const char[] map) {
   char buffers[4][PLATFORM_MAX_PATH];
   ExplodeString(map, "/", buffers, sizeof(buffers), PLATFORM_MAX_PATH);

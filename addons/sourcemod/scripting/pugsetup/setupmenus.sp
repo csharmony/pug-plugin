@@ -28,11 +28,6 @@ public void SetupMenu(int client, bool displayOnly, int menuPosition) {
     AddMenuItem(menu, "start_match", buffer, style);
   }
 
-  // first do a sanity check if an autobalancer is avaliable
-  if (g_TeamType == TeamType_Autobalanced && !PugSetup_IsTeamBalancerAvaliable()) {
-    g_TeamType = TeamType_Random;
-  }
-
   // 1. team type
   if (g_DisplayTeamType) {
     char teamType[128];
@@ -79,29 +74,13 @@ public void SetupMenu(int client, bool displayOnly, int menuPosition) {
     AddMenuItem(menu, "autolive", buffer, style);
   }
 
-  // 7. use aim_ map warmup
-  if (g_DisplayAimWarmup && g_AimMapList.Length >= 1) {
-    char enabledString[128];
-    bool aim_enabled = g_DoAimWarmup;
-    int aim_style = style;
-
-    if (g_MapType == MapType_Current) {
-      aim_enabled = false;
-      aim_style = ITEMDRAW_DISABLED;
-    }
-
-    GetEnabledString(enabledString, sizeof(enabledString), aim_enabled, client);
-    Format(buffer, sizeof(buffer), "%T: %s", "AimWarmupMenuOption", client, enabledString);
-    AddMenuItem(menu, "aim_warmup", buffer, aim_style);
-  }
-
-  // 8. set captains
+  // 7. set captains
   if (g_GameState == GameState_Warmup && UsingCaptains()) {
     Format(buffer, sizeof(buffer), "%T", "SetCaptainsMenuOption", client);
     AddMenuItem(menu, "set_captains", buffer, style);
   }
 
-  // 9. play out maxrounds
+  // 8. play out maxrounds
   if (g_DisplayPlayout) {
     char playOutString[128];
     GetEnabledString(playOutString, sizeof(playOutString), g_DoPlayout, client);
@@ -109,7 +88,7 @@ public void SetupMenu(int client, bool displayOnly, int menuPosition) {
     AddMenuItem(menu, "playout", buffer, style);
   }
 
-  // 10. change map
+  // 9. change map
   if (g_DisplayMapChange) {
     Format(buffer, sizeof(buffer), "%T", "ChangeMapMenuOption", client);
     AddMenuItem(menu, "change_map", buffer, style);
@@ -180,9 +159,6 @@ public int SetupMenuHandler(Menu menu, MenuAction action, int param1, int param2
     } else if (StrEqual(buffer, "cancel_setup")) {
       FakeClientCommand(client, "sm_endgame");
 
-    } else if (StrEqual(buffer, "aim_warmup")) {
-      g_DoAimWarmup = !g_DoAimWarmup;
-      PugSetup_GiveSetupMenu(client, false, pos);
     }
 
     Call_StartForward(g_hOnSetupMenuSelect);
@@ -195,6 +171,8 @@ public int SetupMenuHandler(Menu menu, MenuAction action, int param1, int param2
   } else if (action == MenuAction_End) {
     delete menu;
   }
+
+  return 0;
 }
 
 public void TeamTypeMenu(int client) {
@@ -205,8 +183,6 @@ public void TeamTypeMenu(int client) {
   AddMenuInt(menu, view_as<int>(TeamType_Captains), "%T", "TeamSetupMenuCaptains", client);
   AddMenuInt(menu, view_as<int>(TeamType_Random), "%T", "TeamSetupMenuRandom", client);
   AddMenuInt(menu, view_as<int>(TeamType_Manual), "%T", "TeamSetupMenuManual", client);
-  if (PugSetup_IsTeamBalancerAvaliable())
-    AddMenuInt(menu, view_as<int>(TeamType_Autobalanced), "%T", "Autobalanced", client);
 
   DisplayMenu(menu, client, MENU_TIME_FOREVER);
 }
@@ -222,6 +198,8 @@ public int TeamTypeMenuHandler(Menu menu, MenuAction action, int param1, int par
   } else if (action == MenuAction_End) {
     delete menu;
   }
+
+  return 0;
 }
 
 public void TeamSizeMenu(int client) {
@@ -251,6 +229,8 @@ public int TeamSizeHandler(Menu menu, MenuAction action, int param1, int param2)
   } else if (action == MenuAction_End) {
     delete menu;
   }
+
+  return 0;
 }
 
 /**
@@ -279,6 +259,8 @@ public int MapTypeHandler(Menu menu, MenuAction action, int param1, int param2) 
   } else if (action == MenuAction_End) {
     delete menu;
   }
+
+  return 0;
 }
 
 public int DemoHandler(int client) {
@@ -288,6 +270,8 @@ public int DemoHandler(int client) {
     g_RecordGameOption = false;
   }
   PugSetup_GiveSetupMenu(client);
+
+  return 0;
 }
 
 /**
@@ -326,10 +310,6 @@ public void SetupFinished() {
 
   Call_StartForward(g_hOnSetup);
   Call_Finish();
-
-  if (!g_OnDecidedMap && g_DoAimWarmup && !OnAimMap()) {
-    ChangeToAimMap();
-  }
 }
 
 public void StartLiveTimer() {
@@ -349,8 +329,6 @@ stock void GetTeamString(char[] buffer, int length, TeamType type, int client = 
       Format(buffer, length, "%T", "TeamSetupRandomShort", client);
     case TeamType_Captains:
       Format(buffer, length, "%T", "TeamSetupCaptainsShort", client);
-    case TeamType_Autobalanced:
-      Format(buffer, length, "%T", "Autobalanced", client);
     default:
       LogError("unknown teamtype=%d", type);
   }
@@ -405,4 +383,6 @@ public int ChangeMapHandler(Menu menu, MenuAction action, int param1, int param2
   } else if (action == MenuAction_End) {
     delete menu;
   }
+
+  return 0;
 }

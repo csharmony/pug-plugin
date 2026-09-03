@@ -4,7 +4,7 @@
 
 #tryinclude "manual_version.sp"
 #if !defined PLUGIN_VERSION
-#define PLUGIN_VERSION "2.0.8-dev"
+#define PLUGIN_VERSION "1.0"
 #endif
 
 #define DEBUG_CVAR "sm_pugsetup_debug"
@@ -375,7 +375,7 @@ stock void GetEnabledString(char[] buffer, int length, bool variable, int client
     Format(buffer, length, "%T", "Disabled", client);
 }
 
-stock void GetTrueString(char[] buffer, int length, bool variable, int client = LANG_SERVER) {
+stock void GetTrueString(char[] buffer, int length, bool variable) {
   if (variable)
     Format(buffer, length, "true");
   else

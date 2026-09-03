@@ -415,10 +415,6 @@
 	{
 		"en"		"Set captains"
 	}
-	"AimWarmupMenuOption"
-	{
-		"en"		"Use aim map warmup"
-	}
 	"ChangeMapMenuOption"
 	{
 		"en"		"Change map"
@@ -426,10 +422,6 @@
 	"ChangeMapMenuTitle"
 	{
 		"en"		"Select the map"
-	}
-	"Autobalanced"
-	{
-		"en"		"Autobalanced"
 	}
 	"IsNowReady"
 	{

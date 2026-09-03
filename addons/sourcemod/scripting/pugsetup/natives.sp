@@ -16,7 +16,6 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
   g_ChatAliasesModes = new ArrayList();
 
   g_MapList = new ArrayList(PLATFORM_MAX_PATH);
-  g_AimMapList = new ArrayList(PLATFORM_MAX_PATH);
   g_PermissionsMap = new StringMap();
 
   CreateNative("PugSetup_SetupGame", Native_SetupGame);
@@ -48,9 +47,6 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
   CreateNative("PugSetup_IsValidCommand", Native_IsValidCommand);
   CreateNative("PugSetup_GetPermissions", Native_GetPermissions);
   CreateNative("PugSetup_SetPermissions", Native_SetPermissions);
-  CreateNative("PugSetup_IsTeamBalancerAvaliable", Native_IsTeamBalancerAvaliable);
-  CreateNative("PugSetup_SetTeamBalancer", Native_SetTeamBalancer);
-  CreateNative("PugSetup_ClearTeamBalancer", Native_ClearTeamBalancer);
   RegPluginLibrary("pugsetup");
   return APLRes_Success;
 }
@@ -75,6 +71,7 @@ public int Native_SetupGame(Handle plugin, int numParams) {
   }
 
   SetupFinished();
+  return 0;
 }
 
 public int Native_GetSetupOptions(Handle plugin, int numParams) {
@@ -88,6 +85,8 @@ public int Native_GetSetupOptions(Handle plugin, int numParams) {
   SetNativeCellRef(4, g_RecordGameOption);
   SetNativeCellRef(5, g_DoKnifeRound);
   SetNativeCellRef(6, g_AutoLive);
+
+  return 0;
 }
 
 public int Native_SetSetupOptions(Handle plugin, int numParams) {
@@ -277,6 +276,8 @@ public int Native_SetCaptain(Handle plugin, int numParams) {
       PugSetup_MessageToAll("%t", "CaptMessage", captainNumber, buffer);
     }
   }
+
+  return 0;
 }
 
 public int Native_GetCaptain(Handle plugin, int numParams) {
@@ -294,7 +295,7 @@ public int Native_GetCaptain(Handle plugin, int numParams) {
 public int Native_Message(Handle plugin, int numParams) {
   int client = GetNativeCell(1);
   if (client != 0 && (!IsClientConnected(client) || !IsClientInGame(client)))
-    return;
+    return 0;
 
   char buffer[1024];
   int bytesWritten = 0;
@@ -317,6 +318,8 @@ public int Native_Message(Handle plugin, int numParams) {
     Colorize(finalMsg, sizeof(finalMsg));
     PrintToChat(client, finalMsg);
   }
+
+  return 0;
 }
 
 public int Native_MessageToAll(Handle plugin, int numParams) {
@@ -426,6 +429,8 @@ public int Native_SetRandomCaptains(Handle plugin, int numParams) {
 
   if (IsPlayer(c2))
     PugSetup_SetCaptain(2, c2, true);
+
+  return 0;
 }
 
 public int Native_AddChatAlias(Handle plugin, int numParams) {
@@ -445,6 +450,8 @@ public int Native_AddChatAlias(Handle plugin, int numParams) {
     g_ChatAliasesCommands.PushString(command);
     g_ChatAliasesModes.Push(mode);
   }
+
+  return 0;
 }
 
 public int Native_GiveSetupMenu(Handle plugin, int numParams) {
@@ -459,6 +466,8 @@ public int Native_GiveSetupMenu(Handle plugin, int numParams) {
   }
 
   SetupMenu(client, displayOnly, menuPosition);
+
+  return 0;
 }
 
 public int Native_GiveMapChangeMenu(Handle plugin, int numParams) {
@@ -490,26 +499,4 @@ public int Native_SetPermissions(Handle plugin, int numParams) {
 
   Permission p = GetNativeCell(2);
   return g_PermissionsMap.SetValue(command, p);
-}
-
-public int Native_IsTeamBalancerAvaliable(Handle plugin, int numParams) {
-  return g_BalancerFunction != INVALID_FUNCTION &&
-         GetPluginStatus(g_BalancerFunctionPlugin) == Plugin_Running;
-}
-
-public int Native_SetTeamBalancer(Handle plugin, int numParams) {
-  bool override = GetNativeCell(2);
-  if (!PugSetup_IsTeamBalancerAvaliable() || override) {
-    g_BalancerFunctionPlugin = plugin;
-    g_BalancerFunction = view_as<TeamBalancerFunction>(GetNativeFunction(1));
-    return true;
-  }
-  return false;
-}
-
-public int Native_ClearTeamBalancer(Handle plugin, int numParams) {
-  bool hadBalancer = PugSetup_IsTeamBalancerAvaliable();
-  g_BalancerFunction = INVALID_FUNCTION;
-  g_BalancerFunctionPlugin = INVALID_HANDLE;
-  return hadBalancer;
 }
