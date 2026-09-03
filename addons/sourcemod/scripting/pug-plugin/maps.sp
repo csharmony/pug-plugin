@@ -8,7 +8,7 @@ stock void ChangeMap(ArrayList mapList, int mapIndex = -1, float delay = 3.0,
 
   // print the formatted name
   FormatMapName(mapList, mapIndex, map, sizeof(map));
-  PugSetup_MessageToAll("%t", "ChangeMapMessage", map);
+  PugPlugin_MessageToAll("%t", "ChangeMapMessage", map);
 
   // pass the "true" name to a timer to changelevel
   mapList.GetString(mapIndex, map, sizeof(map));
@@ -54,7 +54,7 @@ public void AddBackupMaps(ArrayList maplist) {
 public bool GetMapList(const char[] fileName, ArrayList mapList) {
   mapList.Clear();
   char mapFile[PLATFORM_MAX_PATH];
-  BuildPath(Path_SM, mapFile, sizeof(mapFile), "configs/pugsetup/%s", fileName);
+  BuildPath(Path_SM, mapFile, sizeof(mapFile), "configs/pug-plugin/%s", fileName);
 
   if (!FileExists(mapFile)) {
     LogError("Missing map file: %s", mapFile);
@@ -79,7 +79,7 @@ public bool GetMapList(const char[] fileName, ArrayList mapList) {
 
 public bool WriteMapList(const char[] fileName, ArrayList mapList) {
   char mapFile[PLATFORM_MAX_PATH];
-  BuildPath(Path_SM, mapFile, sizeof(mapFile), "configs/pugsetup/%s", fileName);
+  BuildPath(Path_SM, mapFile, sizeof(mapFile), "configs/pug-plugin/%s", fileName);
 
   if (!FileExists(mapFile)) {
     LogError("Missing map file: %s", mapFile);
@@ -110,7 +110,7 @@ public bool AddToMapList(const char[] mapName) {
   g_MapListCvar.GetString(maplist, sizeof(maplist));
 
   char mapFile[PLATFORM_MAX_PATH];
-  BuildPath(Path_SM, mapFile, sizeof(mapFile), "configs/pugsetup/%s", maplist);
+  BuildPath(Path_SM, mapFile, sizeof(mapFile), "configs/pug-plugin/%s", maplist);
 
   File file = OpenFile(mapFile, "a");
   if (file != null) {

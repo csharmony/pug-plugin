@@ -7,7 +7,7 @@
 #define PLUGIN_VERSION "1.0"
 #endif
 
-#define DEBUG_CVAR "sm_pugsetup_debug"
+#define DEBUG_CVAR "sm_pp_debug"
 #define MAX_INTEGER_STRING_LENGTH 16
 #define MAX_FLOAT_STRING_LENGTH 32
 

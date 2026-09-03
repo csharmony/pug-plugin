@@ -1,8 +1,8 @@
 #include <cstrike>
 #include <sourcemod>
 
-#include "include/pugsetup.inc"
-#include "pugsetup/util.sp"
+#include "include/pug-plugin.inc"
+#include "pug-plugin/util.sp"
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -18,32 +18,32 @@ bool g_GotKill[MAXPLAYERS + 1][MAXPLAYERS + 1];
 
 // clang-format off
 public Plugin myinfo = {
-    name = "CS:GO PugSetup: damage printer",
-    author = "splewis",
+    name = "Pug Plugin: damage printer",
+    author = "splewis, heapy",
     description = "Writes out player damage on round end or when .dmg is used",
     version = PLUGIN_VERSION,
-    url = "https://github.com/splewis/csgo-pug-setup"
+    url = "https://github.com/csharmony/pug-plugin"
 };
 // clang-format on
 
 public void OnPluginStart() {
-  LoadTranslations("pugsetup.phrases");
+  LoadTranslations("pug-plugin.phrases");
   g_hAutoColorize = CreateConVar(
-      "sm_pugsetup_damageprint_auto_color", "0",
+      "sm_pp_damageprint_auto_color", "0",
       "Whether colors are automatically inserted for damage values, changing depending on if the damage resulted in a kill");
   g_hEnabled =
-      CreateConVar("sm_pugsetup_damageprint_enabled", "1", "Whether the plugin is enabled");
-  g_hAllowDmgCommand = CreateConVar("sm_pugsetup_damageprint_allow_dmg_command", "1",
+      CreateConVar("sm_pp_damageprint_enabled", "1", "Whether the plugin is enabled");
+  g_hAllowDmgCommand = CreateConVar("sm_pp_damageprint_allow_dmg_command", "1",
                                     "Whether players can type .dmg to see damage done");
   g_hMessageFormat = CreateConVar(
-      "sm_pugsetup_damageprint_format",
+      "sm_pp_damageprint_format",
       "--> ({DMG_TO} dmg / {HITS_TO} hits) to ({DMG_FROM} dmg / {HITS_FROM} hits) from {NAME} ({HEALTH} HP)",
       "Format of the damage output string. Avaliable tags are in the default, color tags such as {LIGHT_RED} and {GREEN} also work.");
 
-  AutoExecConfig(true, "pugsetup_damageprint", "sourcemod/pugsetup");
+  AutoExecConfig(true, "pp_damageprint", "sourcemod/pug-plugin");
 
   RegConsoleCmd("sm_dmg", Command_Damage, "Displays damage done");
-  PugSetup_AddChatAlias(".dmg", "sm_dmg");
+  PugPlugin_AddChatAlias(".dmg", "sm_dmg");
 
   HookEvent("round_start", Event_RoundStart);
   HookEvent("player_hurt", Event_DamageDealt, EventHookMode_Pre);
@@ -124,11 +124,11 @@ static void PrintDamageInfo(int client) {
 }
 
 public Action Command_Damage(int client, int args) {
-  if (!PugSetup_IsMatchLive() || g_hEnabled.IntValue == 0 || g_hAllowDmgCommand.IntValue == 0)
+  if (!PugPlugin_IsMatchLive() || g_hEnabled.IntValue == 0 || g_hAllowDmgCommand.IntValue == 0)
     return Plugin_Handled;
 
   if (IsPlayerAlive(client)) {
-    PugSetup_Message(client, "You cannot use that command when alive.");
+    PugPlugin_Message(client, "You cannot use that command when alive.");
     return Plugin_Handled;
   }
 
@@ -137,14 +137,17 @@ public Action Command_Damage(int client, int args) {
 }
 
 public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
-  if (!PugSetup_IsMatchLive() || g_hEnabled.IntValue == 0)
-    return;
+  if (!PugPlugin_IsMatchLive() || g_hEnabled.IntValue == 0)
+    return Plugin_Continue;
+
 
   for (int i = 1; i <= MaxClients; i++) {
     if (IsValidClient(i)) {
       PrintDamageInfo(i);
     }
   }
+
+  return Plugin_Continue;
 }
 
 public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
@@ -155,6 +158,8 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
       g_GotKill[i][j] = false;
     }
   }
+
+  return Plugin_Continue;
 }
 
 public Action Event_DamageDealt(Event event, const char[] name, bool dontBroadcast) {
@@ -178,6 +183,8 @@ public Action Event_DamageDealt(Event event, const char[] name, bool dontBroadca
     g_DamageDone[attacker][victim] += damage;
     g_DamageDoneHits[attacker][victim]++;
   }
+
+  return Plugin_Continue;
 }
 
 public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
@@ -189,4 +196,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
   if (validAttacker && validVictim) {
     g_GotKill[attacker][victim] = true;
   }
+
+  return Plugin_Continue;
 }

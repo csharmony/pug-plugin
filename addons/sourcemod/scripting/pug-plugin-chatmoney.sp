@@ -1,8 +1,8 @@
 #include <cstrike>
 #include <sourcemod>
 
-#include "include/pugsetup.inc"
-#include "pugsetup/util.sp"
+#include "include/pug-plugin.inc"
+#include "pug-plugin/util.sp"
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -11,24 +11,24 @@ ConVar g_hEnabled;
 
 // clang-format off
 public Plugin myinfo = {
-    name = "CS:GO PugSetup: write team money to chat",
-    author = "Versatile_BFG/jkroepke",
+    name = "Pug Plugin: write team money to chat",
+    author = "Versatile_BFG/jkroepke, heapy",
     description = "Write the team members' money to the chat (like WarMod)",
     version = PLUGIN_VERSION,
-    url = "https://github.com/splewis/csgo-pug-setup"
+    url = "https://github.com/csharmony/pug-plugin"
 };
 // clang-format on
 
 public void OnPluginStart() {
-  LoadTranslations("pugsetup.phrases");
-  g_hEnabled = CreateConVar("sm_pugsetup_chatmoney_enabled", "1", "Whether the plugin is enabled");
-  AutoExecConfig(true, "pugsetup_chatmoney", "sourcemod/pugsetup");
+  LoadTranslations("pug-plugin.phrases");
+  g_hEnabled = CreateConVar("sm_pp_chatmoney_enabled", "1", "Whether the plugin is enabled");
+  AutoExecConfig(true, "pp_chatmoney", "sourcemod/pug-plugin");
   HookEvent("round_start", Event_Round_Start);
 }
 
 public Action Event_Round_Start(Event event, const char[] name, bool dontBroadcast) {
-  if (!PugSetup_IsMatchLive() || g_hEnabled.IntValue == 0)
-    return;
+  if (!PugPlugin_IsMatchLive() || g_hEnabled.IntValue == 0)
+    return Plugin_Continue;
 
   ArrayList players = new ArrayList();
 
@@ -61,13 +61,14 @@ public Action Event_Round_Start(Event event, const char[] name, bool dontBroadca
           has_weapon = "\0";
         }
         IntToMoney(GetClientMoney(moneyClient), player_money, sizeof(player_money));
-        PugSetup_Message(displayClient, "\x01$%s \x04%s> \x03%N", player_money, has_weapon,
+        PugPlugin_Message(displayClient, "\x01$%s \x04%s> \x03%N", player_money, has_weapon,
                          moneyClient);
       }
     }
   }
 
   delete players;
+  return Plugin_Continue;
 }
 
 public int SortMoneyFunction(int index1, int index2, Handle array, Handle hnd) {

@@ -1,8 +1,8 @@
 #include <cstrike>
 #include <sourcemod>
 
-#include "include/pugsetup.inc"
-#include "pugsetup/util.sp"
+#include "include/pug-plugin.inc"
+#include "pug-plugin/util.sp"
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -17,18 +17,18 @@ char g_HostName[MAX_HOST_LENGTH];  // stores the original hostname
 
 // clang-format off
 public Plugin myinfo = {
-    name = "CS:GO PugSetup: hostname setter",
-    author = "splewis",
+    name = "Pug Plugin: hostname setter",
+    author = "splewis, heapy",
     description = "Tweaks the server hostname according to the pug status",
     version = PLUGIN_VERSION,
-    url = "https://github.com/splewis/csgo-pug-setup"
+    url = "https://github.com/csharmony/pug-plugin"
 };
 // clang-format on
 
 public void OnPluginStart() {
-  LoadTranslations("pugsetup.phrases");
-  g_hEnabled = CreateConVar("sm_pugsetup_hostname_enabled", "1", "Whether the plugin is enabled");
-  AutoExecConfig(true, "pugsetup_hostname", "sourcemod/pugsetup");
+  LoadTranslations("pug-plugin.phrases");
+  g_hEnabled = CreateConVar("sm_pp_hostname_enabled", "1", "Whether the plugin is enabled");
+  AutoExecConfig(true, "pp_hostname", "sourcemod/pug-plugin");
   g_HostnameCvar = FindConVar("hostname");
   g_GotHostName = false;
 
@@ -45,12 +45,12 @@ public void OnConfigsExecuted() {
   }
 }
 
-public void PugSetup_OnReadyToStartCheck(int readyPlayers, int totalPlayers) {
+public void PugPlugin_OnReadyToStartCheck(int readyPlayers, int totalPlayers) {
   if (g_hEnabled.IntValue == 0)
     return;
 
   char hostname[MAX_HOST_LENGTH];
-  int need = PugSetup_GetPugMaxPlayers() - totalPlayers;
+  int need = PugPlugin_GetPugMaxPlayers() - totalPlayers;
 
   if (need >= 1) {
     Format(hostname, sizeof(hostname), "%s [NEED %d]", g_HostName, need);
@@ -61,7 +61,7 @@ public void PugSetup_OnReadyToStartCheck(int readyPlayers, int totalPlayers) {
   g_HostnameCvar.SetString(hostname);
 }
 
-public void PugSetup_OnGoingLive() {
+public void PugPlugin_OnGoingLive() {
   if (g_hEnabled.IntValue == 0)
     return;
 
@@ -71,7 +71,7 @@ public void PugSetup_OnGoingLive() {
 }
 
 public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
-  if (g_hEnabled.IntValue == 0 || !PugSetup_IsMatchLive())
+  if (g_hEnabled.IntValue == 0 || !PugPlugin_IsMatchLive())
     return Plugin_Continue;
 
   char hostname[MAX_HOST_LENGTH];
@@ -82,7 +82,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
   return Plugin_Continue;
 }
 
-public void PugSetup_OnMatchOver() {
+public void PugPlugin_OnMatchOver() {
   if (GetConVarInt(g_hEnabled) == 0)
     return;
 

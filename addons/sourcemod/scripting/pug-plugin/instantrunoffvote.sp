@@ -93,7 +93,7 @@ public int MapSelectionHandler(Menu menu, MenuAction action, int param1, int par
     int mapIndex = GetMenuInt(menu, param2);
     char mapName[255];
     FormatMapName(g_MapVotePool, mapIndex, mapName, sizeof(mapName));
-    PugSetup_Message(client, "%t", "IRVSelectionMessage", mapName, g_ClientMapPosition[client] + 1);
+    PugPlugin_Message(client, "%t", "IRVSelectionMessage", mapName, g_ClientMapPosition[client] + 1);
 
     g_ClientMapPicks[client][g_ClientMapPosition[client]] = mapIndex;
     g_ClientMapPosition[client]++;
@@ -259,7 +259,7 @@ public void CollectIRVResults() {
   char map3[64];
   FormatMapName(g_MapVotePool, g_SecondRunnerUpMapIndex, map3, sizeof(map3));
 
-  PugSetup_MessageToAll("%t", "IRVResultMessage", map1, map2, map3);
+  PugPlugin_MessageToAll("%t", "IRVResultMessage", map1, map2, map3);
 
   for (int i = 1; i <= MaxClients; i++) {
     if (IsPlayer(i)) {

@@ -7,7 +7,7 @@ public void SetupMenu(int client, bool displayOnly, int menuPosition) {
   menu.ExitButton = true;
 
   int style = ITEMDRAW_DEFAULT;
-  if ((g_ForceDefaultsCvar.IntValue != 0 && !PugSetup_IsPugAdmin(client)) || displayOnly) {
+  if ((g_ForceDefaultsCvar.IntValue != 0 && !PugPlugin_IsPugAdmin(client)) || displayOnly) {
     style = ITEMDRAW_DISABLED;
   }
 
@@ -137,11 +137,11 @@ public int SetupMenuHandler(Menu menu, MenuAction action, int param1, int param2
 
     } else if (StrEqual(buffer, "knife")) {
       g_DoKnifeRound = !g_DoKnifeRound;
-      PugSetup_GiveSetupMenu(client, false, pos);
+      PugPlugin_GiveSetupMenu(client, false, pos);
 
     } else if (StrEqual(buffer, "autolive")) {
       g_AutoLive = !g_AutoLive;
-      PugSetup_GiveSetupMenu(client, false, pos);
+      PugPlugin_GiveSetupMenu(client, false, pos);
 
     } else if (StrEqual(buffer, "set_captains")) {
       FakeClientCommand(client, "sm_capt");
@@ -151,7 +151,7 @@ public int SetupMenuHandler(Menu menu, MenuAction action, int param1, int param2
 
     } else if (StrEqual(buffer, "playout")) {
       g_DoPlayout = !g_DoPlayout;
-      PugSetup_GiveSetupMenu(client, false, pos);
+      PugPlugin_GiveSetupMenu(client, false, pos);
 
     } else if (StrEqual(buffer, "finish_setup")) {
       SetupFinished();
@@ -191,10 +191,10 @@ public int TeamTypeMenuHandler(Menu menu, MenuAction action, int param1, int par
   if (action == MenuAction_Select) {
     int client = param1;
     g_TeamType = view_as<TeamType>(GetMenuInt(menu, param2));
-    PugSetup_GiveSetupMenu(client);
+    PugPlugin_GiveSetupMenu(client);
   } else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack) {
     int client = param1;
-    PugSetup_GiveSetupMenu(client);
+    PugPlugin_GiveSetupMenu(client);
   } else if (action == MenuAction_End) {
     delete menu;
   }
@@ -222,10 +222,10 @@ public int TeamSizeHandler(Menu menu, MenuAction action, int param1, int param2)
   if (action == MenuAction_Select) {
     int client = param1;
     g_PlayersPerTeam = GetMenuInt(menu, param2);
-    PugSetup_GiveSetupMenu(client);
+    PugPlugin_GiveSetupMenu(client);
   } else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack) {
     int client = param1;
-    PugSetup_GiveSetupMenu(client);
+    PugPlugin_GiveSetupMenu(client);
   } else if (action == MenuAction_End) {
     delete menu;
   }
@@ -252,10 +252,10 @@ public int MapTypeHandler(Menu menu, MenuAction action, int param1, int param2) 
     int client = param1;
     g_MapType = view_as<MapType>(GetMenuInt(menu, param2));
     UpdateMapStatus();
-    PugSetup_GiveSetupMenu(client);
+    PugPlugin_GiveSetupMenu(client);
   } else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack) {
     int client = param1;
-    PugSetup_GiveSetupMenu(client);
+    PugPlugin_GiveSetupMenu(client);
   } else if (action == MenuAction_End) {
     delete menu;
   }
@@ -266,10 +266,10 @@ public int MapTypeHandler(Menu menu, MenuAction action, int param1, int param2) 
 public int DemoHandler(int client) {
   g_RecordGameOption = !g_RecordGameOption;
   if (!IsTVEnabled() && g_RecordGameOption) {
-    PugSetup_Message(client, "%t", "TVDisabled");
+    PugPlugin_Message(client, "%t", "TVDisabled");
     g_RecordGameOption = false;
   }
-  PugSetup_GiveSetupMenu(client);
+  PugPlugin_GiveSetupMenu(client);
 
   return 0;
 }
@@ -299,13 +299,13 @@ public void SetupFinished() {
   StartLiveTimer();
 
   if (GetConVarInt(g_AutoRandomizeCaptainsCvar) != 0) {
-    PugSetup_SetRandomCaptains();
+    PugPlugin_SetRandomCaptains();
   }
 
   UpdateMapStatus();
 
-  if (FileExists("cfg/sourcemod/pugsetup/on_setup.cfg")) {
-    ServerCommand("exec sourcemod/pugsetup/on_setup.cfg");
+  if (FileExists("cfg/sourcemod/pug-plugin/on_setup.cfg")) {
+    ServerCommand("exec sourcemod/pug-plugin/on_setup.cfg");
   }
 
   Call_StartForward(g_hOnSetup);
@@ -379,7 +379,7 @@ public int ChangeMapHandler(Menu menu, MenuAction action, int param1, int param2
     ChangeMap(g_MapList, choice);
   } else if (action == MenuAction_Cancel && param2 == MenuCancel_ExitBack) {
     int client = param1;
-    PugSetup_GiveSetupMenu(client);
+    PugPlugin_GiveSetupMenu(client);
   } else if (action == MenuAction_End) {
     delete menu;
   }

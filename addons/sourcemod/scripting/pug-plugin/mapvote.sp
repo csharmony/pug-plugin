@@ -62,7 +62,7 @@ public int MapVoteHandler(Menu menu, MenuAction action, int param1, int param2) 
       Format(mapName, sizeof(mapName), "%T", "RandomMapVote", LANG_SERVER);
     }
 
-    PugSetup_MessageToAll("%t", "Voted For", clientName, mapName);
+    PugPlugin_MessageToAll("%t", "Voted For", clientName, mapName);
 
   } else if (action == MenuAction_Display) {
     char buffer[255];

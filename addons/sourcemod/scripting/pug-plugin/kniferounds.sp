@@ -39,7 +39,7 @@ public Action Timer_AnnounceKnife(Handle timer) {
     return Plugin_Handled;
 
   for (int i = 0; i < 5; i++)
-    PugSetup_MessageToAll("%t", "KnifeRound");
+    PugPlugin_MessageToAll("%t", "KnifeRound");
   return Plugin_Handled;
 }
 
@@ -139,7 +139,7 @@ public Action Command_Stay(int client, int args) {
       EndKnifeRound(false);
     } else {
       g_KnifeRoundVotes[client] = KnifeDecision_Stay;
-      PugSetup_Message(client, "%t", "KnifeRoundVoteStay");
+      PugPlugin_Message(client, "%t", "KnifeRoundVoteStay");
       HandleKnifeDecisionVote();
     }
   }
@@ -152,7 +152,7 @@ public Action Command_Swap(int client, int args) {
       EndKnifeRound(true);
     } else {
       g_KnifeRoundVotes[client] = KnifeDecision_Swap;
-      PugSetup_Message(client, "%t", "KnifeRoundVoteSwap");
+      PugPlugin_Message(client, "%t", "KnifeRoundVoteSwap");
       HandleKnifeDecisionVote();
     }
   }

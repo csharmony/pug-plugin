@@ -23,9 +23,9 @@ public int Captain1MenuHandler(Menu menu, MenuAction action, int param1, int par
     if (choice == -1) {
       int randomClient = RandomPlayer();
       if (IsPlayer(randomClient))
-        PugSetup_SetCaptain(1, randomClient, true);
+        PugPlugin_SetCaptain(1, randomClient, true);
     } else if (IsPlayer(choice)) {
-      PugSetup_SetCaptain(1, choice, true);
+      PugPlugin_SetCaptain(1, choice, true);
     }
 
     Captain2Menu(client);
@@ -57,9 +57,9 @@ public int Captain2MenuHandler(Menu menu, MenuAction action, int param1, int par
     if (choice == -1) {
       int randomClient = RandomPlayer(g_capt1);
       if (IsPlayer(randomClient))
-        PugSetup_SetCaptain(2, randomClient, true);
+        PugPlugin_SetCaptain(2, randomClient, true);
     } else if (IsPlayer(choice)) {
-      PugSetup_SetCaptain(2, choice, true);
+      PugPlugin_SetCaptain(2, choice, true);
     }
   } else if (action == MenuAction_End) {
     CloseHandle(menu);
@@ -110,7 +110,7 @@ public void LeaderMenu(int client) {
 public int LeaderMenuHandler(Menu menu, MenuAction action, int param1, int param2) {
   if (action == MenuAction_Select) {
     int choice = GetMenuInt(menu, param2);
-    PugSetup_SetLeader(choice);
+    PugPlugin_SetLeader(choice);
   } else if (action == MenuAction_End) {
     CloseHandle(menu);
   }
