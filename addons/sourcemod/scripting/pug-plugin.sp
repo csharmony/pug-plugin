@@ -456,14 +456,35 @@ public bool OnClientConnect(int client, char[] rejectmsg, int maxlen) {
 }
 
 public void OnClientDisconnect_Post(int client) {
-  int numPlayers = 0;
-  for (int i = 1; i <= MaxClients; i++)
-    if (IsPlayer(i))
-      numPlayers++;
-
-  if (numPlayers == 0 && !g_SwitchingMaps && g_AutoSetupCvar.IntValue == 0) {
-    EndMatch(true);
+  if (g_SwitchingMaps || g_GameState == GameState_None) {
+    return;
   }
+
+  if (GetRealClientCount() == 0) {
+    AutoForceEndMatch();
+    return;
+  }
+
+  // teams arent meaningful while captains are picking players (everyone is spectating)
+  if (g_GameState == GameState_PickingPlayers) {
+    return;
+  }
+
+  // one of the teams is empty
+  if (GetNumHumansOnTeam(CS_TEAM_T) != 0 || GetNumHumansOnTeam(CS_TEAM_CT) != 0) {
+    return;
+  }
+
+  AutoForceEndMatch();
+}
+
+static void AutoForceEndMatch() {
+  Call_StartForward(g_OnForceEnd);
+  Call_PushCell(0);
+  Call_Finish();
+
+  PugPlugin_MessageToAll("%t", "ForceEnd", 0);
+  EndMatch(true);
 }
 
 public void OnMapStart() {
