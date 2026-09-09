@@ -53,6 +53,7 @@ ConVar g_PostGameCfgCvar;
 ConVar g_QuickRestartsCvar;
 ConVar g_RandomizeMapOrderCvar;
 ConVar g_RandomOptionInMapVoteCvar;
+ConVar g_ReadyToStartCvar;
 ConVar g_SetupEnabledCvar;
 ConVar g_SnakeCaptainsCvar;
 ConVar g_StartDelayCvar;
@@ -285,6 +286,10 @@ public void OnPluginStart() {
   g_RandomOptionInMapVoteCvar =
       CreateConVar("sm_pp_random_map_vote_option", "1",
                    "Whether option 1 in a mapvote is the random map choice.");
+  g_ReadyToStartCvar =
+      CreateConVar("sm_pp_ready_to_start", "4",
+                   "Number of ready players required to start the match. Set to 0 to use twice the team size (2 * players per team).",
+                   _, true, 0.0);
   g_SetupEnabledCvar = CreateConVar("sm_pp_setup_enabled", "1",
                                     "Whether the sm_setup commands are enabled");
   g_SnakeCaptainsCvar = CreateConVar(
@@ -556,15 +561,14 @@ public Action Timer_CheckReady(Handle timer) {
   }
 
   // beware: scary spaghetti code ahead
-  if ((readyPlayers == totalPlayers && readyPlayers >= 2 * g_PlayersPerTeam) ||
-      g_ForceStartSignal) {
+  if (readyPlayers >= GetReadyPlayersRequired() || g_ForceStartSignal) {
     g_ForceStartSignal = false;
 
     if (g_OnDecidedMap) {
       if (g_TeamType == TeamType_Captains) {
         if (IsPlayer(g_capt1) && IsPlayer(g_capt2) && g_capt1 != g_capt2) {
           g_LiveTimerRunning = false;
-          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, totalPlayers,
+          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, GetReadyPlayersRequired(), 
                              "ReadyStatusAllReadyPick");
           CreateTimer(1.0, StartPicking, _, TIMER_FLAG_NO_MAPCHANGE);
           return Plugin_Stop;
@@ -575,10 +579,10 @@ public Action Timer_CheckReady(Handle timer) {
         g_LiveTimerRunning = false;
 
         if (g_AutoLive) {
-          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, totalPlayers,
+          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, GetReadyPlayersRequired(), 
                              "ReadyStatusAllReady");
         } else {
-          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, totalPlayers,
+          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, GetReadyPlayersRequired(), 
                              "ReadyStatusAllReadyWaiting");
         }
 
@@ -590,7 +594,7 @@ public Action Timer_CheckReady(Handle timer) {
       if (g_MapType == MapType_Veto) {
         if (IsPlayer(g_capt1) && IsPlayer(g_capt2) && g_capt1 != g_capt2) {
           g_LiveTimerRunning = false;
-          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, totalPlayers,
+          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, GetReadyPlayersRequired(), 
                              "ReadyStatusAllReadyVeto");
           PugPlugin_MessageToAll("%t", "VetoMessage");
           CreateTimer(2.0, MapSetup, _, TIMER_FLAG_NO_MAPCHANGE);
@@ -601,7 +605,7 @@ public Action Timer_CheckReady(Handle timer) {
 
       } else {
         g_LiveTimerRunning = false;
-        PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, totalPlayers,
+        PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, GetReadyPlayersRequired(), 
                            "ReadyStatusAllReadyVote");
         PugPlugin_MessageToAll("%t", "VoteMessage");
         CreateTimer(2.0, MapSetup, _, TIMER_FLAG_NO_MAPCHANGE);
@@ -635,6 +639,14 @@ public Action Timer_CheckReady(Handle timer) {
   return Plugin_Continue;
 }
 
+static int GetReadyPlayersRequired() {
+  int required = g_ReadyToStartCvar.IntValue;
+  if (required <= 0) {
+    return 2 * g_PlayersPerTeam;
+  }
+  return required;
+}
+
 public void StatusHint(int readyPlayers, int totalPlayers) {
   char rdyCommand[ALIAS_LENGTH];
   FindAliasFromCommand("sm_ready", rdyCommand);
@@ -648,7 +660,7 @@ public void StatusHint(int readyPlayers, int totalPlayers) {
       }
     }
   } else {
-    PrintHintTextToAll("%t", "ReadyStatus", readyPlayers, totalPlayers, rdyCommand);
+    PrintHintTextToAll("%t", "ReadyStatus", readyPlayers, GetReadyPlayersRequired(), rdyCommand);
   }
 }
 
@@ -693,7 +705,7 @@ static void GiveCaptainHint(int client, int readyPlayers, int totalPlayers) {
     Format(cap2, sizeof(cap2), "%T", "CaptainNotSelected", client);
   }
 
-  PrintHintTextToAll("%t", "ReadyStatusCaptains", readyPlayers, totalPlayers, cap1, cap2);
+  PrintHintTextToAll("%t", "ReadyStatusCaptains", readyPlayers, GetReadyPlayersRequired(), cap1, cap2);
 
   // if there aren't any captains and we full players, print the hint telling the leader how to set
   // captains
