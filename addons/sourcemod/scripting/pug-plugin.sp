@@ -75,6 +75,7 @@ int g_Leader = -1;
 ArrayList g_MapList;
 ArrayList g_PastMaps;
 bool g_ForceEnded = false;
+int g_PlayersNeeded = 4;
 
 /** Specific choices made when setting up **/
 int g_PlayersPerTeam = 5;
@@ -556,15 +557,14 @@ public Action Timer_CheckReady(Handle timer) {
   }
 
   // beware: scary spaghetti code ahead
-  if ((readyPlayers == totalPlayers && readyPlayers >= 2 * g_PlayersPerTeam) ||
-      g_ForceStartSignal) {
+  if (readyPlayers >= g_PlayersNeeded || g_ForceStartSignal) {
     g_ForceStartSignal = false;
 
     if (g_OnDecidedMap) {
       if (g_TeamType == TeamType_Captains) {
         if (IsPlayer(g_capt1) && IsPlayer(g_capt2) && g_capt1 != g_capt2) {
           g_LiveTimerRunning = false;
-          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, totalPlayers,
+          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, g_PlayersNeeded, 
                              "ReadyStatusAllReadyPick");
           CreateTimer(1.0, StartPicking, _, TIMER_FLAG_NO_MAPCHANGE);
           return Plugin_Stop;
@@ -575,10 +575,10 @@ public Action Timer_CheckReady(Handle timer) {
         g_LiveTimerRunning = false;
 
         if (g_AutoLive) {
-          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, totalPlayers,
+          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, g_PlayersNeeded, 
                              "ReadyStatusAllReady");
         } else {
-          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, totalPlayers,
+          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, g_PlayersNeeded, 
                              "ReadyStatusAllReadyWaiting");
         }
 
@@ -590,7 +590,7 @@ public Action Timer_CheckReady(Handle timer) {
       if (g_MapType == MapType_Veto) {
         if (IsPlayer(g_capt1) && IsPlayer(g_capt2) && g_capt1 != g_capt2) {
           g_LiveTimerRunning = false;
-          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, totalPlayers,
+          PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, g_PlayersNeeded, 
                              "ReadyStatusAllReadyVeto");
           PugPlugin_MessageToAll("%t", "VetoMessage");
           CreateTimer(2.0, MapSetup, _, TIMER_FLAG_NO_MAPCHANGE);
@@ -601,7 +601,7 @@ public Action Timer_CheckReady(Handle timer) {
 
       } else {
         g_LiveTimerRunning = false;
-        PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, totalPlayers,
+        PrintHintTextToAll("%t\n%t", "ReadyStatusPlayers", readyPlayers, g_PlayersNeeded, 
                            "ReadyStatusAllReadyVote");
         PugPlugin_MessageToAll("%t", "VoteMessage");
         CreateTimer(2.0, MapSetup, _, TIMER_FLAG_NO_MAPCHANGE);
@@ -648,7 +648,7 @@ public void StatusHint(int readyPlayers, int totalPlayers) {
       }
     }
   } else {
-    PrintHintTextToAll("%t", "ReadyStatus", readyPlayers, totalPlayers, rdyCommand);
+    PrintHintTextToAll("%t", "ReadyStatus", readyPlayers, g_PlayersNeeded, rdyCommand);
   }
 }
 
@@ -693,7 +693,7 @@ static void GiveCaptainHint(int client, int readyPlayers, int totalPlayers) {
     Format(cap2, sizeof(cap2), "%T", "CaptainNotSelected", client);
   }
 
-  PrintHintTextToAll("%t", "ReadyStatusCaptains", readyPlayers, totalPlayers, cap1, cap2);
+  PrintHintTextToAll("%t", "ReadyStatusCaptains", readyPlayers, g_PlayersNeeded, cap1, cap2);
 
   // if there aren't any captains and we full players, print the hint telling the leader how to set
   // captains
