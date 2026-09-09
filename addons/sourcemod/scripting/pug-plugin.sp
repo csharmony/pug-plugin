@@ -220,7 +220,7 @@ public void OnPluginStart() {
       "sm_pp_auto_randomize_captains", "0",
       "When games are using captains, should they be automatically randomized once? Note you can still manually set them or use .rand/!rand to redo the randomization.");
   g_AutoSetupCvar =
-      CreateConVar("sm_pp_autosetup", "0",
+      CreateConVar("sm_pp_autosetup", "1",
                    "Whether a pug is automatically setup using the default setup options or not.");
   g_DemoNameFormatCvar = CreateConVar(
       "sm_pp_demo_name_format", "pug_{TIME}_{MAP}",
@@ -232,7 +232,7 @@ public void OnPluginStart() {
       CreateConVar("sm_pp_display_map_votes", "1",
                    "Whether votes cast by players will be displayed to everyone");
   g_DoVoteForKnifeRoundDecisionCvar = CreateConVar(
-      "sm_pp_vote_for_knife_round_decision", "0",
+      "sm_pp_vote_for_knife_round_decision", "1",
       "If 0, the first player to type .stay/.swap/.t/.ct will decide the round round winner decision - otherwise a majority vote will be used");
   g_EchoReadyMessagesCvar = CreateConVar("sm_pp_echo_ready_messages", "1",
                                          "Whether to print to chat when clients ready/unready.");
@@ -240,7 +240,7 @@ public void OnPluginStart() {
       "sm_pp_excluded_maps", "0",
       "Number of past maps to exclude from map votes. Setting this to 0 disables this feature.");
   g_ExcludeSpectatorsCvar = CreateConVar(
-      "sm_pp_exclude_spectators", "0",
+      "sm_pp_exclude_spectators", "1",
       "Whether to exclude spectators in the ready-up counts. Setting this to 1 will exclude specators from being selected by captains as well.");
   g_ExecDefaultConfigCvar = CreateConVar(
       "sm_pp_exec_default_game_config", "1",
@@ -260,7 +260,7 @@ public void OnPluginStart() {
       "sm_pp_maplist", "maps.txt",
       "Maplist file in addons/sourcemod/configs/pug-plugin to use. You may also use a workshop collection ID instead of a maplist if you have the SteamWorks extension installed.");
   g_MapVoteTimeCvar =
-      CreateConVar("sm_pp_mapvote_time", "25",
+      CreateConVar("sm_pp_mapvote_time", "30",
                    "How long the map vote should last if using map-votes.", _, true, 10.0);
   g_MaxTeamSizeCvar =
       CreateConVar("sm_pp_max_team_size", "5",
@@ -272,7 +272,7 @@ public void OnPluginStart() {
       "sm_pp_mutual_unpausing", "1",
       "Whether an unpause command requires someone from both teams to fully unpause the match. Note that this forces the pause/unpause commands to be unrestricted (so anyone can use them).");
   g_PausingEnabledCvar =
-      CreateConVar("sm_pp_pausing_enabled", "1", "Whether pausing is allowed.");
+      CreateConVar("sm_pp_pausing_enabled", "0", "Whether pausing is allowed.");
   g_PostGameCfgCvar =
       CreateConVar("sm_pp_postgame_cfg", "sourcemod/pug-plugin/warmup.cfg",
                    "Config to execute after games finish; should be in the csgo/cfg directory.");
