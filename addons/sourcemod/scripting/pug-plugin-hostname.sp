@@ -81,7 +81,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 		return Plugin_Continue;
 
 	char hostname[MAX_HOST_LENGTH];
-	Format(hostname, sizeof hostname, "%s [LIVE %d-%d]", g_HostName, CS_GetTeamScore(CS_TEAM_CT), CS_GetTeamScore(CS_TEAM_T));
+	Format(hostname, sizeof hostname, "%s [LIVE %d-%d]", g_HostName, GetTeamScore(CS_TEAM_CT), GetTeamScore(CS_TEAM_T));
 	g_HostnameCvar.SetString(hostname);
 
 	return Plugin_Continue;
