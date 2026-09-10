@@ -1917,52 +1917,68 @@ public Action Timer_BeginMatch(Handle timer)
 }
 public void ScrambleTeams()
 {
-	int tCount = 0;
-	int ctCount = 0;
+	ArrayList players = new ArrayList();
 
 	for(int i = 1; i <= MaxClients; i++)
 	{
 		if(IsPlayer(i) && (g_ExcludeSpectatorsCvar.IntValue == 0 || GetClientTeam(i) != CS_TEAM_SPECTATOR))
 		{
-			if(tCount < g_PlayersPerTeam && ctCount < g_PlayersPerTeam)
-			{
-				bool ct = (GetRandomInt(0, 1) == 0);
-				if(ct)
-				{
-					SwitchPlayerTeam(i, CS_TEAM_CT);
-					ctCount++;
-				}
-				else
-				{
-					SwitchPlayerTeam(i, CS_TEAM_T);
-					tCount++;
-				}
+			players.Push(i);
+		}
+	}
 
-			}
-			else if(tCount < g_PlayersPerTeam && ctCount >= g_PlayersPerTeam)
-			{
-// CT is full
-				SwitchPlayerTeam(i, CS_TEAM_T);
-				tCount++;
+	RandomizeArray(players);
 
-			}
-			else if(ctCount < g_PlayersPerTeam && tCount >= g_PlayersPerTeam)
-			{
-// T is full
-				SwitchPlayerTeam(i, CS_TEAM_CT);
-				ctCount++;
+	int numPlayers = players.Length;
+	int tSize = min(g_PlayersPerTeam, numPlayers / 2);
+	int ctSize = min(g_PlayersPerTeam, numPlayers / 2);
 
+// give the leftover player (odd count) to a random side, if there's room
+	int extra = numPlayers - (tSize + ctSize);
+	if(extra > 0)
+	{
+		if(tSize >= g_PlayersPerTeam && ctSize < g_PlayersPerTeam)
+		{
+			ctSize++;
+		}
+		else if(ctSize >= g_PlayersPerTeam && tSize < g_PlayersPerTeam)
+		{
+			tSize++;
+		}
+		else if(tSize < g_PlayersPerTeam && ctSize < g_PlayersPerTeam)
+		{
+			if(GetRandomInt(0, 1) == 0)
+			{
+				tSize++;
 			}
 			else
 			{
-// both teams full
-				SwitchPlayerTeam(i, CS_TEAM_SPECTATOR);
-				Call_StartForward(g_hOnNotPicked);
-				Call_PushCell(i);
-				Call_Finish();
+				ctSize++;
 			}
 		}
 	}
+
+	int index = 0;
+	for(int i = 0; i < tSize; i++)
+	{
+		SwitchPlayerTeam(players.Get(index++), CS_TEAM_T);
+	}
+
+	for(int i = 0; i < ctSize; i++)
+	{
+		SwitchPlayerTeam(players.Get(index++), CS_TEAM_CT);
+	}
+
+	for(int i = index; i < numPlayers; i++)
+	{
+		int client = players.Get(i);
+		SwitchPlayerTeam(client, CS_TEAM_SPECTATOR);
+		Call_StartForward(g_hOnNotPicked);
+		Call_PushCell(client);
+		Call_Finish();
+	}
+
+	delete players;
 }
 public void ExecWarmupConfigs()
 {
