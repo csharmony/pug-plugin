@@ -15,6 +15,11 @@ ConVar g_HostnameCvar;
 bool g_GotHostName = false;	// keep track of it, so we only fetch it once
 char g_HostName[MAX_HOST_LENGTH];	// stores the original hostname
 
+// changing the hostname while a client is mid-connect crashes srcds...
+char g_PendingHostname[MAX_HOST_LENGTH];
+bool g_WritePending = false;
+Handle g_PendingTimer = INVALID_HANDLE;
+
 // clang-format off
 public Plugin myinfo =
 {
@@ -64,7 +69,7 @@ public void PugPlugin_OnReadyToStartCheck(int readyPlayers, int totalPlayers)
 		Format(hostname, sizeof hostname, "%s", g_HostName);
 	}
 
-	g_HostnameCvar.SetString(hostname);
+	UpdateHostname(hostname);
 }
 public void PugPlugin_OnGoingLive()
 {
@@ -73,7 +78,7 @@ public void PugPlugin_OnGoingLive()
 
 	char hostname[MAX_HOST_LENGTH];
 	Format(hostname, sizeof hostname, "%s [LIVE]", g_HostName);
-	g_HostnameCvar.SetString(hostname);
+	UpdateHostname(hostname);
 }
 public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 {
@@ -82,7 +87,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 
 	char hostname[MAX_HOST_LENGTH];
 	Format(hostname, sizeof hostname, "%s [LIVE %d-%d]", g_HostName, GetTeamScore(CS_TEAM_CT), GetTeamScore(CS_TEAM_T));
-	g_HostnameCvar.SetString(hostname);
+	UpdateHostname(hostname);
 
 	return Plugin_Continue;
 }
@@ -91,5 +96,67 @@ public void PugPlugin_OnMatchOver()
 	if(GetConVarInt(g_hEnabled) == 0)
 		return ;
 
-	g_HostnameCvar.SetString(g_HostName);
+	UpdateHostname(g_HostName);
+}
+
+static void UpdateHostname(const char[] value)
+{
+	char current[MAX_HOST_LENGTH];
+	g_HostnameCvar.GetString(current, sizeof current);
+	if(StrEqual(current, value))
+		return ;
+
+	if(IsClientConnecting())
+	{
+// defer the write until the client(s) finished connecting
+		strcopy(g_PendingHostname, sizeof g_PendingHostname, value);
+		g_WritePending = true;
+		if(g_PendingTimer == INVALID_HANDLE)
+		{
+			g_PendingTimer = CreateTimer(1.0, Timer_WritePendingHostname, _, TIMER_REPEAT);
+		}
+
+		return ;
+	}
+
+	g_HostnameCvar.SetString(value);
+}
+
+static bool IsClientConnecting()
+{
+	for(int i = 1; i <= MaxClients; i++)
+	{
+		if(IsClientConnected(i) && !IsFakeClient(i) && !IsClientInGame(i))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+public Action Timer_WritePendingHostname(Handle timer)
+{
+	if(!g_WritePending)
+	{
+		g_PendingTimer = INVALID_HANDLE;
+		return Plugin_Stop;
+	}
+
+	if(IsClientConnecting())
+	{
+		return Plugin_Continue;
+	}
+
+	g_WritePending = false;
+	g_PendingTimer = INVALID_HANDLE;
+
+	char current[MAX_HOST_LENGTH];
+	g_HostnameCvar.GetString(current, sizeof current);
+	if(!StrEqual(current, g_PendingHostname))
+	{
+		g_HostnameCvar.SetString(g_PendingHostname);
+	}
+
+	return Plugin_Stop;
 }
