@@ -55,7 +55,7 @@ public void OnWorkshopInfoReceived(Handle request, bool failure, bool requestSuc
 
 	int len = 0;
 	SteamWorks_GetHTTPResponseBodySize(request, len);
-	char[] response = new newnewnewnewnewnewnewchar[len];
+	char[] response = new char[len];
 	SteamWorks_GetHTTPResponseBodyData(request, response, len);
 
 	KeyValues kv = new KeyValues("response");
@@ -242,7 +242,7 @@ public void OnMapInfoReceived(Handle request, bool failure, bool requestSuccessf
 
 	int len = 0;
 	SteamWorks_GetHTTPResponseBodySize(request, len);
-	char[] response = new newnewnewnewnewnewnewchar[len];
+	char[] response = new char[len];
 	SteamWorks_GetHTTPResponseBodyData(request, response, len);
 
 	KeyValues kv = new KeyValues("response");
