@@ -176,6 +176,16 @@ Handle g_hOnStateChange = INVALID_HANDLE;
 Handle g_hOnUnready = INVALID_HANDLE;
 Handle g_hOnWarmupCfg = INVALID_HANDLE;
 
+int GetReadyPlayersRequired()
+{
+	int required = g_ReadyToStartCvar.IntValue;
+	if(required <= 0)
+	{
+		return 2 * g_PlayersPerTeam;
+	}
+	return required;
+}
+
 #include "pug-plugin/captainpickmenus.sp"
 #include "pug-plugin/configs.sp"
 #include "pug-plugin/instantrunoffvote.sp"
@@ -302,7 +312,7 @@ public void OnPluginStart()
 	g_hOnKnifeRoundDecision = CreateGlobalForward("PugPlugin_OnKnifeRoundDecision", ET_Ignore, Param_Cell);
 	g_hOnLive = CreateGlobalForward("PugPlugin_OnLive", ET_Ignore);
 	g_hOnLiveCfg = CreateGlobalForward("PugPlugin_OnLiveCfgExecuted", ET_Ignore);
-	g_hOnLiveCheck = CreateGlobalForward("PugPlugin_OnReadyToStartCheck", ET_Ignore, Param_Cell, Param_Cell);
+	g_hOnLiveCheck = CreateGlobalForward("PugPlugin_OnReadyToStartCheck", ET_Ignore, Param_Cell);
 	g_hOnMatchOver = CreateGlobalForward("PugPlugin_OnMatchOver", ET_Ignore, Param_Cell, Param_String);
 	g_hOnNotPicked = CreateGlobalForward("PugPlugin_OnNotPicked", ET_Ignore, Param_Cell);
 	g_hOnPermissionCheck = CreateGlobalForward("PugPlugin_OnPermissionCheck", ET_Ignore, Param_Cell, Param_String, Param_Cell, Param_CellByRef);
@@ -552,7 +562,6 @@ public Action Timer_CheckReady(Handle timer)
 
 	Call_StartForward(g_hOnLiveCheck);
 	Call_PushCell(readyPlayers);
-	Call_PushCell(totalPlayers);
 	Call_Finish();
 
 	if(g_TeamType == TeamType_Captains && g_AutoRandomizeCaptainsCvar.IntValue != 0 && totalPlayers >= PugPlugin_GetPugMaxPlayers())
@@ -572,15 +581,6 @@ public Action Timer_CheckReady(Handle timer)
 	}
 
 	return Plugin_Continue;
-}
-static int GetReadyPlayersRequired()
-{
-	int required = g_ReadyToStartCvar.IntValue;
-	if(required <= 0)
-	{
-		return 2 * g_PlayersPerTeam;
-	}
-	return required;
 }
 public void StatusHint(int readyPlayers, int totalPlayers)
 {

@@ -52,13 +52,13 @@ public void OnConfigsExecuted()
 		g_GotHostName = true;
 	}
 }
-public void PugPlugin_OnReadyToStartCheck(int readyPlayers, int totalPlayers)
+public void PugPlugin_OnReadyToStartCheck(int readyPlayers)
 {
 	if(g_hEnabled.IntValue == 0)
 		return ;
 
 	char hostname[MAX_HOST_LENGTH];
-	int need = PugPlugin_GetPugMaxPlayers() - totalPlayers;
+	int need = PugPlugin_GetReadyToStart() - readyPlayers;
 
 	if(need >= 1)
 	{

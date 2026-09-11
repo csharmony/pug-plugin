@@ -139,7 +139,7 @@ forward void PugPlugin_OnNotPicked(int client);
 /**
  * Called every timer-check for whether the pug is ready to start or not.
  */
-forward void PugPlugin_OnReadyToStartCheck(int readyPlayers, int totalPlayers);
+forward void PugPlugin_OnReadyToStartCheck(int readyPlayers);
 
 /**
  * Called when user permissions are being checked. You can change
@@ -262,6 +262,9 @@ native void PugPlugin_MessageToAll(const char[] format, any:...);
 // Only valid if the game has already been setup.
 native int PugPlugin_GetPugMaxPlayers();
 
+// Returns the number of ready players required to start the pug.
+native int PugPlugin_GetReadyToStart();
+
 // Returns if a client was present when the game started.
 // This doesn't include if the player disconnected and reconnected.
 native bool PugPlugin_PlayerAtStart(int client);
@@ -328,6 +331,7 @@ public __pl_pp_SetNTVOptional() {
   MarkNativeAsOptional("PugPlugin_Message");
   MarkNativeAsOptional("PugPlugin_MessageToAll");
   MarkNativeAsOptional("PugPlugin_GetPugMaxPlayers");
+  MarkNativeAsOptional("PugPlugin_GetReadyToStart");
   MarkNativeAsOptional("PugPlugin_PlayerAtStart");
   MarkNativeAsOptional("PugPlugin_IsPugAdmin");
   MarkNativeAsOptional("PugPlugin_HasPermissions");

@@ -38,6 +38,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("PugPlugin_Message", Native_Message);
 	CreateNative("PugPlugin_MessageToAll", Native_MessageToAll);
 	CreateNative("PugPlugin_GetPugMaxPlayers", Native_GetPugMaxPlayers);
+	CreateNative("PugPlugin_GetReadyToStart", Native_GetReadyToStart);
 	CreateNative("PugPlugin_PlayerAtStart", Native_PlayerAtStart);
 	CreateNative("PugPlugin_IsPugAdmin", Native_IsPugAdmin);
 	CreateNative("PugPlugin_HasPermissions", Native_HasPermissions);
@@ -390,6 +391,10 @@ public int Native_MessageToAll(Handle plugin, int numParams)
 public int Native_GetPugMaxPlayers(Handle plugin, int numParams)
 {
 	return 2 * g_PlayersPerTeam;
+}
+public int Native_GetReadyToStart(Handle plugin, int numParams)
+{
+	return GetReadyPlayersRequired();
 }
 public int Native_PlayerAtStart(Handle plugin, int numParams)
 {
