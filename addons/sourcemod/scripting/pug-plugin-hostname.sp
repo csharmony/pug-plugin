@@ -50,12 +50,12 @@ public void PugPlugin_OnReadyToStartCheck(int readyPlayers, int totalPlayers) {
     return;
 
   char hostname[MAX_HOST_LENGTH];
-  int need = PugPlugin_GetPugMaxPlayers() - totalPlayers;
+  int need = READY_PLAYERS_NEEDED - totalPlayers;
 
   if (need >= 1) {
     Format(hostname, sizeof(hostname), "%s [NEED %d]", g_HostName, need);
   } else {
-    Format(hostname, sizeof(hostname), "%s", g_HostName);
+    Format(hostname, sizeof(hostname), "%s [WAITING FOR READY-UP]", g_HostName);
   }
 
   g_HostnameCvar.SetString(hostname);
